@@ -2,7 +2,11 @@
 
 let mongoose = require('mongoose');
 let es       = require('event-stream');
+let bf       = require('stream-buffers');
 let mm       = require('musicmetadata');
+let Buffer   = require('buffer');
+
+let SongModel = null;
 
 let ts = () => {
   return es.trough(function(data){
@@ -24,7 +28,7 @@ let getSongMetadata = (is) => {
   })
 };
 
-let saveSongToGfs = (is) => {
+let saveSongToGfs = (is, name) => {
   let ws = gfs.createWriteStream();
   is.pipe(ws);
 
@@ -39,7 +43,9 @@ let saveSongToGfs = (is) => {
   });
 };
 
-module.exports = function(gfs) {
+exports.init = function(app) {
+
+  let gfs = app.get('gfs');
 
   let SongSchema = mongoose.Schema({
     meta: mongoose.Schema.Types.Mixed,
@@ -56,7 +62,19 @@ module.exports = function(gfs) {
     let p1 = ts();
     let p2 = ts();
 
-    is.pipe(p1).pipe(p2);
+    let inputStream = null;
+    if (Buffer.isBuffer(is)) {
+      inputStream = new bf.ReadableStreamBuffer({
+        frequency: 10,
+        chunkSize: 2048
+      });
+
+      inputStream.put(is);
+    } else {
+      inputStream = is;
+    }
+
+    inputStream.pipe(p1).pipe(p2);
 
     Promise.all([
       getSongMetadata(p1),
@@ -77,5 +95,7 @@ module.exports = function(gfs) {
     })
   };
 
-  return mongoose.model('Song', SongSchema);
+  SongModel = mongoose.model('Song', SongSchema);
 }
+
+exports.Model = SongModel;
