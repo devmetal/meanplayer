@@ -2,30 +2,14 @@
 
 let express = require('express');
 let multer  = require('multer');
+let storage = multer.memoryStorage()
 let Song    = require('../model/song.schema').Model;
 
 let router = express.Router();
 
-router.use((req, res, next) => {
-  let handler = multer({
-    inMemory: true,
-    onFileUploadComplete(file) {
-      console.log(file);
-      let buffer = file.buffer;
-      Song.createSong(buffer, (err, song) => {
-        req.song = song;
-        next();
-      });
-    },
-
-    onError(err) {
-      console.log(err);
-      next(err);
-    }
-  });
-
-  handler(req, res, next);
-});
+router.use(multer({
+  storage: storage
+}).array('files'));
 
 router.get('/', (req, res, next) => {
   Song.find((err, songs) => {
@@ -46,5 +30,13 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  res.json(req.song);
+  console.log('something');
+  console.log(req.files);
+  /*let buffer = req.file.buffer;
+  Song.createSong(buffer, (err, song) => {
+    res.json(song);
+  });*/
+  res.json({ok:true});
 });
+
+module.exports = router;

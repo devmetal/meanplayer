@@ -6,9 +6,16 @@
     <script src="/javascripts/main.js"></script>
   </head>
   <body>
-    <div ng-controller="HelloWorld">
-      <input type="text" ng-model="name">
-      <h1>Hello {{name}}</h1>
+    <div ng-controller="SongsController">
+      <h1>Upload files here</h1>
+      <div class="button" ngf-select="upload($files)" multiple="multiple">Upload on file select</div>
+      <h2>Selected files</h2>
+      <ul>
+        <li ng-repeat="file in files">
+          {{file.name}} - {{file.type}}
+          <span ng-if="file.error"> - {{file.error}}</span>
+        </li>
+      </ul>
     </div>
   </body>
 </html>

@@ -2,10 +2,17 @@
 
 let angular = require('angular');
 
-let Player = angular.module('Player', []);
+require('ng-file-upload');
 
-Player.controller('HelloWorld', function($scope){
-  $scope.name = "Metál Ádám";
-});
+require('./controllers');
+require('./services');
+require('./directives');
 
-Window.Player = Player;
+let Player = angular.module('Player', [
+  'ngFileUpload',
+  'Player.Controllers',
+  'Player.Directives',
+  'Player.Services'
+]);
+
+window.Player = Player;

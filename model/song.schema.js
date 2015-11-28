@@ -68,7 +68,6 @@ exports.init = function(app) {
         frequency: 10,
         chunkSize: 2048
       });
-
       inputStream.put(is);
     } else {
       inputStream = is;
