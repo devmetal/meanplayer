@@ -1,9 +1,5 @@
 #!/usr/bin/env node
 require('dotenv').load();
-/**
- * Module dependencies.
- */
-require('dotenv').load();
 
 var app = require('../app');
 var debug = require('debug')('meanplayer:server');
