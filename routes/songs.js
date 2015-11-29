@@ -25,13 +25,25 @@ module.exports = (app) => {
     });
   });
 
-  router.get('/:id', (req, res) => {
-    Song.find({_id:req.id}, (err, song) => {
+  router.delete('/:id', (req, res) => {
+    console.log('request delete');
+    let id = req.params.id;
+    Song.findOneAndRemove({_id:id}, (err) => {
       if (err) {
         return next(err);
       }
-      res.json(song);
-    })
+      res.json({deleted:id});
+    });
+  });
+
+  router.get('/play/:id', (req, res) => {
+    let id = req.params.id;
+    Song.findOne({_id:id}, (err, song) => {
+      if (err) {
+        return next(err);
+      }
+      song.getFile().pipe(res);
+    });
   });
 
   router.post('/', (req, res) => {

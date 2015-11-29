@@ -14,6 +14,16 @@ PlayerService.prototype.getSongs = function() {
   });
 }
 
+PlayerService.prototype.deleteSong = function(id) {
+  return this.q((resolve, reject) => {
+    this.http.delete('/songs/' + id)
+      .then((result) => {
+        console.log('valami');
+        resolve(result.data);
+      }, (err) => reject(err));
+  });
+}
+
 PlayerService.$inject = ['$http', '$q'];
 
 module.exports = PlayerService;

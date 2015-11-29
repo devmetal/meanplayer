@@ -85,7 +85,7 @@ module.exports = function(app) {
     _fsId: mongoose.Schema.Types.ObjectId
   });
 
-  SongSchema.methods.getFile = () => {
+  SongSchema.methods.getFile = function() {
     return gfs.createReadStream({
       _id: this._fsId
     });

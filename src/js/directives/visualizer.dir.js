@@ -1,4 +1,4 @@
-angular.module('album.directives').directive('visualizer', function(){
+module.exports = function() {
   return {
     scope:{},
     require: '^player',
@@ -62,4 +62,4 @@ angular.module('album.directives').directive('visualizer', function(){
       draw();
     }
   }
-});
+};

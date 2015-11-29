@@ -1,2 +1,7 @@
-<h1>Zenelejátszó</h1>
-<a href="/#/upload">Feltöltés</a>
+<div class="player">
+  <audio ng-src="{{url}}"></audio>
+  <button ng-click="play()">Play</button>
+  <button ng-click="stop()">Stop</button>
+  <button ng-click="pause()">Pause</button>
+  <visualizer />
+</div>

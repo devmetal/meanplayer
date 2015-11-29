@@ -4,13 +4,13 @@ let angular = require('angular');
 
 angular.module('Player')
 .config(['$stateProvider', '$urlRouterProvider', ($stateProvider, $urlRouterProvider) => {
-  $urlRouterProvider.otherwise('/player');
+  $urlRouterProvider.otherwise('/songs');
 
   $stateProvider
-    .state('player', {
-      url: '/player',
-      templateUrl: 'player.html',
-      controller: 'PlayerController as pc'
+    .state('songs', {
+      url: '/songs',
+      templateUrl: 'songs.html',
+      controller: 'SongsController'
     })
     .state('upload', {
       url: '/upload',
