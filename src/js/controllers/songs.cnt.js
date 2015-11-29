@@ -32,8 +32,9 @@ function SongsController(Upload, $scope) {
       err => console.log(err),
       evt => {
         console.log(evt);
-        //var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
-        //console.log('progress: ' + progressPercentage + '% ' + evt.config.data.file.name);
+        var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
+        console.log('progress: ' + progressPercentage + '%');
+        $scope.process = progressPercentage;
       }
     );
   };

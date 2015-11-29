@@ -3,15 +3,14 @@
 let mongoose = require('mongoose');
 let Grid     = require('gridfs-stream');
 
+let db = process.env.DB;
+
 module.exports = function(app) {
   Grid.mongo = mongoose.mongo;
-  let db = process.env.DB;
-  let conn = mongoose.createConnection(db);
+  mongoose.connect(db);
 
-  conn.once('open', () => {
-    let gfs = Grid(conn.db);
-    app.set('gfs', gfs);
+  let gfs = Grid(mongoose.connection.db);
 
-    require('./song.schema').init(app);
-  });
+  app.set('gfs', gfs);
+  app.set('SongModel', require('./song.schema')(app));
 }

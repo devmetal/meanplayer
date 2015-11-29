@@ -4,15 +4,45 @@ let mongoose = require('mongoose');
 let es       = require('event-stream');
 let bf       = require('stream-buffers');
 let mm       = require('musicmetadata');
-let Buffer   = require('buffer');
+let Buffer   = require('buffer').Buffer;
+let stream   = require('stream');
+let util     = require('util');
 
-let SongModel = null;
+function BufferStream(source) {
+  stream.Readable.call(this);
+
+  this._source = source;
+  this._offset = 0;
+  this._length = source.length;
+
+  this.on('end', this._destroy);
+}
+
+util.inherits( BufferStream, stream.Readable );
+
+BufferStream.prototype._destroy = function() {
+  this._source = null;
+  this._offset = null;
+  this._length = null;
+};
+
+BufferStream.prototype._read = function( size ) {
+  if ( this._offset < this._length ) {
+    this.push( this._source.slice( this._offset, ( this._offset + size ) ) );
+    this._offset += size;
+  }
+
+  if ( this._offset >= this._length ) {
+    this.push( null );
+  }
+};
+
 
 let ts = () => {
-  return es.trough(function(data){
+  return es.through(function(data){
     this.emit('data',data);
   }, function(){
-    this.emit('end');
+    this.emit('end', null);
   });
 };
 
@@ -20,6 +50,7 @@ let getSongMetadata = (is) => {
   return new Promise((resolve, reject) => {
     mm(is, (err, meta) => {
       if (err) {
+        console.log('error', err);
         return reject(err);
       } else {
         return resolve(meta);
@@ -28,8 +59,10 @@ let getSongMetadata = (is) => {
   })
 };
 
-let saveSongToGfs = (is, name) => {
-  let ws = gfs.createWriteStream();
+let saveSongToGfs = (gfs, is) => {
+  let ws = gfs.createWriteStream({
+    _id: mongoose.Types.ObjectId()
+  });
   is.pipe(ws);
 
   return new Promise((resolve, reject) => {
@@ -38,13 +71,13 @@ let saveSongToGfs = (is, name) => {
     });
 
     ws.on('error', (err) => {
+      console.log('error', err);
       reject(err);
     })
   });
 };
 
-exports.init = function(app) {
-
+module.exports = function(app) {
   let gfs = app.get('gfs');
 
   let SongSchema = mongoose.Schema({
@@ -58,43 +91,35 @@ exports.init = function(app) {
     });
   };
 
-  SongSchema.statics.createSong = (is, cb) => {
+  SongSchema.statics.createSong = function(is, cb) {
     let p1 = ts();
     let p2 = ts();
 
     let inputStream = null;
     if (Buffer.isBuffer(is)) {
-      inputStream = new bf.ReadableStreamBuffer({
-        frequency: 10,
-        chunkSize: 2048
-      });
-      inputStream.put(is);
+      inputStream = new BufferStream(is);
     } else {
       inputStream = is;
     }
 
-    inputStream.pipe(p1).pipe(p2);
-
     Promise.all([
       getSongMetadata(p1),
-      saveSongToGfs(p2)
-    ]).then((meta, file) => {
-      let newSong = new this();
-      newSong.meta = meta;
-      newSong.fsId = file._id;
-      newSong.save((err) => {
-        if (err) {
-          cb(err, null);
-        } else {
-          cb(null, newSong);
-        }
-      })
+      saveSongToGfs(gfs, p2)
+    ]).then((results) => {
+      let meta = results[0];
+      let file = results[1];
+      console.log('fuck');
+      cb(null, {
+        meta: meta,
+        file: file._id
+      });
     }).catch((err) => {
+      console.log(err.message);
       cb(err, null);
-    })
+    });
+
+    inputStream.pipe(p1).pipe(p2);
   };
 
-  SongModel = mongoose.model('Song', SongSchema);
+  return mongoose.model('Song', SongSchema);
 }
-
-exports.Model = SongModel;
