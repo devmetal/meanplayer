@@ -20,6 +20,7 @@ module.exports = (app) => {
       if (err) {
         return next(err);
       }
+      console.log(songs);
       res.json(songs);
     });
   });

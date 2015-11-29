@@ -1,6 +1,6 @@
 'use strict';
 
-function SongsController(Upload, $scope) {
+function UploadController(Upload, $scope) {
 
   $scope.checkedFiles = [];
 
@@ -38,6 +38,6 @@ function SongsController(Upload, $scope) {
       }
     );
   };
-}
+};
 
-module.exports = ['Upload', '$scope', SongsController];
+module.exports = ['Upload', '$scope', UploadController];

@@ -1,0 +1,15 @@
+<div>
+  <a href="/#/">Lejátszó</a>
+  <h1>Upload files here</h1>
+  <div class="button" ngf-select="upload($files)" multiple="multiple">Upload on file select</div>
+  <h2>Selected files</h2>
+  <ul>
+    <li ng-repeat="file in files">
+      {{file.name}} - {{file.type}}
+      <span ng-if="file.error"> - {{file.error}}</span>
+    </li>
+  </ul>
+  <div ng-if="process">
+    {{process}}%
+  </div>
+</div>

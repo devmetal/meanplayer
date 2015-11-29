@@ -10,7 +10,7 @@ gulp.task('views', function(){
     .pipe(template({
       standalone: true
     }))
-    .pipe(gulp.dest('app/js'));
+    .pipe(gulp.dest('src/js'));
 
   return views.pipe(browserSync.reload({stream:true, one:true}));
 });
