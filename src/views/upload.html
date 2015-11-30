@@ -12,4 +12,12 @@
   <div ng-if="process">
     {{process}}%
   </div>
+  <div ng-if="success">
+    <div ng-if="error">
+      Hiba történt a feltöltés során
+    </div>
+    <div ng-if="!error">
+      A feltöltés sikerült
+    </div>
+  </div>
 </div>

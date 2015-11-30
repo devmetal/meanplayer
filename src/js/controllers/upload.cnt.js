@@ -45,7 +45,7 @@ function UploadController(Upload, $scope, messages) {
       err => {
         $scope.files = [];
         $scope.uploading = false;
-        $scope.success = false;
+        $scope.success = true;
         $scope.error = true;
         $scope.errMessage = messages.uploadError;
       },

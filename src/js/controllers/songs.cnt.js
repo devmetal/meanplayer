@@ -22,9 +22,7 @@ function SongsController(playerSrv, $scope, messages) {
     });
   };
 
-  $scope.$on('play', function(e, song){
-    $scope.current = song;
-    $scope.playing = true;
+  $scope.$on('play', function(e){
     $scope.$broadcast('stopAll', e.targetScope);
   });
 

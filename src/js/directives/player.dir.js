@@ -12,32 +12,40 @@ module.exports = function() {
         audio = element.find("audio")[0];
 
       scope.playing = false;
+      scope.paused = false;
+      scope.started = false;
 
       scope.play = function() {
-        if (scope.playing) {
-          return scope.resume();
+        if (scope.paused) {
+          audio.play();
+          scope.playing = true;
+          scope.paused = false;
+          return;
         }
 
-        scope.$emit('play', song);
+        song.current = true;
+        scope.$emit('play');
         scope.playing = true;
+        scope.started = true;
         audio.src = url;
         audio.play();
       };
 
       scope.pause = function() {
         audio.pause();
-      };
-
-      scope.resume = function() {
-        audio.play();
+        scope.paused = true;
+        scope.playing = false;
       };
 
       scope.stop = function() {
-        if (scope.playing) {
+        if (scope.started) {
+          song.current = false;
           audio.pause();
           audio.currentTime = 0;
           audio.src = "";
           scope.playing = false;
+          scope.paused = false;
+          scope.started = false;
         }
       };
 
@@ -45,10 +53,6 @@ module.exports = function() {
         if (from !== scope) {
           scope.stop();
         }
-      });
-
-      scope.$on('$destroy', function() {
-        if (audio) audio.remove();
       });
     }
   }

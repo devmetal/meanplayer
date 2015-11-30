@@ -1,5 +1,8 @@
+<div class="delete" ng-click="delete()"><i class="material-icons">delete</i></div>
 <div class="title">
   {{song.meta.title}}
-  <div class="delete" ng-click="delete()"><i class="material-icons">delete</i></div>
 </div>
-<player />
+<player></player>
+<div class="datas">
+  <div><span>Album:</span> {{song.meta.album}}</div>
+</div>

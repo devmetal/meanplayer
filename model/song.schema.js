@@ -79,7 +79,7 @@ module.exports = function(app) {
 
     Promise.all([
       getSongMetadata(p1),
-      saveFilleToGfs(gfs, p2)
+      saveFileToGfs(gfs, p2)
     ]).then((results) => {
       let meta = results[0];
       let file = results[1];
