@@ -2,10 +2,12 @@
 
 let express = require('express');
 let multer  = require('multer');
-let async = require('async');
-let storage = multer.memoryStorage()
+let async   = require('async');
+let utils   = require('../utils');
 
-let router = express.Router();
+let sb      = utils.streamBuffer;
+let storage = multer.memoryStorage()
+let router  = express.Router();
 
 module.exports = (app) => {
 
@@ -17,66 +19,57 @@ module.exports = (app) => {
 
   router.get('/', (req, res, next) => {
     Song.find((err, songs) => {
-      if (err) {
-        return next(err);
+      if (!err) {
+        return res.json(songs);
       }
-      console.log(songs);
-      res.json(songs);
+      next(err);
     });
   });
 
-  router.delete('/:id', (req, res) => {
-    console.log('request delete');
+  router.delete('/:id', (req, res, next) => {
     let id = req.params.id;
     Song.findOneAndRemove({_id:id}, (err) => {
-      if (err) {
-        return next(err);
+      if (!err) {
+        return res.json({deleted:id});
       }
-      res.json({deleted:id});
+      return next(err);
     });
   });
 
-  router.get('/play/:id', (req, res) => {
+  router.get('/play/:id', (req, res, next) => {
     let id = req.params.id;
-    Song.findOne({_id:id}, (err, song) => {
-      if (err) {
-        return next(err);
+    async.waterfall([
+      function getSong(callback) {
+        Song.findOne({_id:id}, callback);
+      },
+      function buffer(song, callback) {
+        let stream = song.getFile();
+        streambuffer(stream, callback);
       }
-      song.getFile().pipe(res);
+    ], function(err, buffer) {
+      if (!err) {
+        res.set('Content-Type', 'audio/mpeg');
+        return res.send(buffer);
+      }
+      next(err);
     });
   });
 
-  router.post('/', (req, res) => {
-    console.log(req.files);
-    async.map(req.files, (file, cb) => {
-      let buffer = file.buffer;
-      Song.createSong(buffer, (err, songData) => {
-        if (err) {
-          cb(err, null);
-        } else {
-          console.log('you');
-          console.log(songData);
-          let song = new Song();
-          song.meta = songData.meta;
-          song._fsId = songData.file;
-          song.save(function(err){
-            console.log('happening');
-            if (!err) {
-              console.log('saved');
-              console.log(song);
-              cb(null, song);
-            } else {
-              console.log(err);
-              cb(err, null);
-            }
-          });
-        }
+  router.post('/', (req, res, next) => {
+    let asyncTasks = [];
+
+    req.files.forEach(file => {
+      asyncTasks.push((callback) => {
+        Song.createSong(file.buffer, callback);
       });
-    }, (errors, results) => {
-      console.log(errors);
-      console.log(results);
-      res.json({files: results});
-    })
+    });
+
+    async.parallel(asyncTasks, (error, results) => {
+      if (!error) {
+        return res.json({files: results});
+      }
+      next(error);
+    });
   });
 
   return router;
