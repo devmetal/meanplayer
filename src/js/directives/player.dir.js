@@ -3,13 +3,10 @@
 module.exports = function() {
   return {
     scope:{},
-    require: '^song',
     restrict: 'E',
     templateUrl: 'player.html',
-    link: function(scope, element, attr, songCt) {
-      let url = songCt.getUrl(),
-        song = songCt.getSong(),
-        audio = element.find("audio")[0];
+    link: function(scope, element, attr) {
+      let url, song, audio = element.find("audio")[0];
 
       scope.playing = false;
       scope.paused = false;
@@ -23,8 +20,6 @@ module.exports = function() {
           return;
         }
 
-        song.current = true;
-        scope.$emit('play');
         scope.playing = true;
         scope.started = true;
         audio.src = url;
@@ -39,7 +34,6 @@ module.exports = function() {
 
       scope.stop = function() {
         if (scope.started) {
-          song.current = false;
           audio.pause();
           audio.currentTime = 0;
           audio.src = "";
@@ -49,10 +43,15 @@ module.exports = function() {
         }
       };
 
-      scope.$on('stopAll', function(e, from){
-        if (from !== scope) {
-          scope.stop();
+      scope.$on('select', function(e, _song){
+        if (song) {
+          song.current = false;
         }
+        song = _song;
+        url = `/songs/play/${song._id}`;
+        scope.stop();
+        scope.play();
+        song.current = true;
       });
     }
   }

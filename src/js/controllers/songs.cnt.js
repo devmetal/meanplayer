@@ -22,10 +22,9 @@ function SongsController(playerSrv, $scope, messages) {
     });
   };
 
-  $scope.$on('play', function(e){
-    $scope.$broadcast('stopAll', e.targetScope);
-  });
-
+  $scope.select = (song) => {
+    $scope.$broadcast('select', song);
+  }
 }
 
 module.exports = ['PlayerService', '$scope', 'messages', SongsController];

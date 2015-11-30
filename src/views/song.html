@@ -1,8 +1,8 @@
-<div class="delete" ng-click="delete()"><i class="material-icons">delete</i></div>
+<div class="delete" ng-click="delete(); $event.stopPropagation()"><i class="material-icons">delete</i></div>
 <div class="title">
   {{song.meta.title}}
 </div>
-<player></player>
+
 <div class="datas">
   <div><span>Album:</span> {{song.meta.album}}</div>
 </div>
