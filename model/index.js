@@ -3,10 +3,11 @@
 let mongoose = require('mongoose');
 let Grid     = require('gridfs-stream');
 
-let db = process.env.DB;
+Grid.mongo = mongoose.mongo;
 
 module.exports = function(app) {
-  Grid.mongo = mongoose.mongo;
+  let db = process.env.DB;
+
   mongoose.connect(db);
 
   let gfs = Grid(mongoose.connection.db);
