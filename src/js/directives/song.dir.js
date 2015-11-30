@@ -1,12 +1,18 @@
+'use strict';
+
+var SongController = function(scope) {
+  this.song = scope.song;
+};
+
+SongController.prototype.getSong = function() {
+  return this.song;
+};
+
+SongController.prototype.getUrl = function() {
+  return `/songs/play/${this.song._id}`;
+};
+
 module.exports = function(){
-  var SongController = function(scope) {
-    this.song = scope.song;
-  }
-
-  SongController.prototype.getSong = function() {
-    return this.song;
-  }
-
   return {
     scope: {
       song: '=',

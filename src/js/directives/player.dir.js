@@ -1,35 +1,26 @@
+'use strict';
+
+var PlayerController = function() {
+  this.visualizer = null;
+};
+
+PlayerController.prototype.setVisualizer = function(vs) {
+  this.visualizer = vs;
+};
+
+PlayerController.prototype.startVisualize = function(audio) {
+  if (this.visualizer) {
+    this.visualizer.startVisualize(audio);
+  }
+};
+
+PlayerController.prototype.resetVisualizer = function() {
+  if (this.visualizer) {
+    this.visualizer.resetVisualizer();
+  }
+}
+
 module.exports = function() {
-
-  var PlayerController = function(scope) {
-    this.playCallback = null;
-    this.pauseCallback = null;
-    this.stopCallback = null;
-  };
-
-  PlayerController.prototype.onPlay = function(cb) {
-    if (cb) {
-      this.playCallback = cb;
-    } else if (angular.isFunction(this.playCallback)) {
-      this.playCallback.apply(null);
-    }
-  };
-
-  PlayerController.prototype.onPause = function(cb) {
-    if (cb) {
-      this.pauseCallback = cb;
-    } else if (angular.isFunction(this.pauseCallback)) {
-      this.pauseCallback.apply(null);
-    }
-  };
-
-  PlayerController.prototype.onStop = function(cb) {
-    if (cb) {
-      this.stopCallback = cb;
-    } else if (angular.isFunction(this.stopCallback)) {
-      this.stopCallback.apply(null);
-    }
-  };
-
   return {
     scope:{},
     require: ['^song', 'player'],
@@ -37,28 +28,32 @@ module.exports = function() {
     templateUrl: 'player.html',
     controller: ['$scope', PlayerController],
     link: function(scope, element, attr, controllers) {
-      var songController = controllers[0];
-      var playerController = controllers[1];
-      var audio = element.find('audio')[0];
-
-      scope.song = songController.getSong();
-      scope.url = '/songs/play/' + scope.song._id;
+      let songController = controllers[0],
+          url = songController.getUrl(),
+          player = controllers[1];
+          audio;
 
       scope.play = function() {
-        audio.play();
-        playerController.onPlay();
-        scope.$emit('play', scope.song);
+        if (audio) audio.remove();
+        player.resetVisualizer();
+
+        audio = new Audio();
+        audio.src = url;
+        audio.oncanplay = function() {
+          scope.$emit('play', song);
+          player.startVisualize(audio);
+          audio.play();
+        };
       };
 
       scope.pause = function() {
         audio.pause();
-        playerController.onPause();
       };
 
       scope.stop = function() {
-        audio.pause();
-        audio.currentTime = 0;
-        playerController.onStop();
+        this.audio.pause();
+        this.audio.currentTime = 0;
+        player.resetVisualizer();
       };
 
       scope.$on('stopAll', function(e, from){

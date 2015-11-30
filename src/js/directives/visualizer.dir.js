@@ -1,65 +1,89 @@
-module.exports = function() {
+'use strict';
+
+let angular = require('angular');
+
+function Drawer(canvas) {
+  this.canvas = canvas;
+  this.context = canvas.getContext("2d");
+}
+
+Drawer.prototype.setWidth = function(w) {
+  this.context.canvas.width  = w;
+}
+
+Drawer.prototype.setHeight = function(h) {
+  this.context.canvas.height = h;
+}
+
+Drawer.prototype.draw = function(freq) {
+  let w = this.context.canvas.width;
+  let h = this.context.canvas.height;
+
+  context.clearRect(0, 0, w, h);
+  context.fillStyle = '#00585F';
+
+  barWidth = w / 64;
+
+  for (i = 0; i<freq.length; i+=2) {
+    var val = freq[i] * 0.15;
+    context.fillRect(i * barWidth, h - val, barWidth, val);
+  }
+}
+
+Drawer.prototype.clear = function() {
+  context.clearRect(0, 0, w, h);
+}
+
+var visualizer = function($window) {
   return {
     scope:{},
     require: '^player',
     restrict: 'E',
     template: "<canvas></canvas>",
     link: function(scope, element, attrs, player) {
-      var parent = element.parent();
-      var audio = parent.find('audio')[0];
-      var canvas = element.find('canvas')[0];
-      var context = canvas.getContext("2d");
-      var audioContext = null;
-      var audioSrc = null;
-      var analyzer = null;
-      var analyzerStream = null;
-      var freq = new Uint8Array(128);
+      let parent = element.parent()[0],
+          canvas = element.find('canvas')[0]
+          audioContext = new AudioContext(),
+          drawer = new Drawer(canvas),
+          w = angular.element($window),
+          audioSrc = null,
+          analyzer = null,
+          animation = null,
 
-      player.onPlay(function(){
-        if (audioSrc !== null) {
-          analyzerStream = setInterval(function(){
-            analyzer.getByteFrequencyData(freq);
-          },20);
-          return;
-        }
+      player.setVisualizer(scope);
 
-        audioContext = new AudioContext();
+      drawer.setHeight(40);
+      drawer.setWidth(parent.offsetWidth);
+
+      scope.$watch(() => w.width(), () => {
+        drawer.setWidth(parent.offsetWidth);
+      });
+
+      scope.resetVisualizer = function() {
+        cancelAnimationFrame(animation);
+        if (audioSrc) audioSrc.disconnect();
+        audioSrc = null;
+        drawer.clear();
+      };
+
+      scope.startVisualize = function(audio) {
+        analyzer = (analyzer || audioContext.createAnalyser());
+        analyser.smoothingTimeConstant = 0.8;
+        analyzer.fftSize = 128;
         audioSrc = audioContext.createMediaElementSource(audio);
-        analyzer = audioContext.createAnalyser();
-        analyzer.fftSize = 256;
         audioSrc.connect(analyzer);
         audioSrc.connect(audioContext.destination);
-
-        analyzerStream = setInterval(function(){
-          analyzer.getByteFrequencyData(freq);
-        },20);
-      });
-
-      player.onStop(function(){
-        clearInterval(analyzerStream);
-        freq = new Uint8Array(128);
-      });
-
-      player.onPause(function(){
-        clearInterval(analyzerStream);
-      });
+        draw();
+      };
 
       function draw() {
-        context.canvas.width  = parent[0].offsetWidth;
-        context.canvas.height = 40;
-        context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-        context.fillStyle = '#00585F';
-
-        barWidth = context.canvas.width / 64;
-
-        for (i = 0; i<freq.length; i+=2) {
-          var val = (freq[i] + 5) * 0.15;
-          context.fillRect(i * barWidth, context.canvas.height - val, barWidth, val);
-        }
-        requestAnimationFrame(draw);
+        var freq = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(freq);
+        animation = requestAnimationFrame(draw);
+        drawer.draw(freq);
       }
-
-      draw();
     }
   }
-};
+}
+
+module.exports = ['$window', visualizer];
