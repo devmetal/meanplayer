@@ -3,11 +3,9 @@
 let express = require('express');
 let multer  = require('multer');
 let async   = require('async');
-let utils   = require('../utils');
 
-let sb      = utils.streamBuffer;
-let storage = multer.memoryStorage()
-let router  = express.Router();
+let storage      = multer.memoryStorage()
+let router       = express.Router();
 
 module.exports = (app) => {
 
@@ -48,14 +46,14 @@ module.exports = (app) => {
       function getSong(callback) {
         Song.findOne({_id:id}, callback);
       },
-      function buffer(song, callback) {
+      function getStream(song, callback) {
         let stream = song.getFile();
-        streambuffer(stream, callback);
+        callback(null, stream);
       }
-    ], function(err, buffer) {
+    ], function(err, stream) {
       if (!err) {
-        res.set('Content-Type', 'audio/mpeg');
-        return res.send(buffer);
+        res.set('Content-Type', "audio/mpeg");
+        return stream.pipe(res);
       }
       next({
         message: 'Server error',

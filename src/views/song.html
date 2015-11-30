@@ -1,7 +1,5 @@
-<div class="song">
-  <div class="title">
-    {{song.meta.title}}
-    <button ng-click="delete()">Delete</button>
-  </div>
-  <player />
+<div class="title">
+  {{song.meta.title}}
+  <div class="delete" ng-click="delete()"><i class="material-icons">delete</i></div>
 </div>
+<player />

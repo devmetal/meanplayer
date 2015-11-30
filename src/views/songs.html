@@ -1,3 +1,5 @@
 <h1>Zenelejátszó</h1>
 <a href="/#/upload">Feltöltés</a>
-<div class="song" ng-repeat="song in songs" song="song" on-delete="delete(song)"></div>
+<div class="songs">
+  <div class="song" ng-repeat="song in songs" song="song" on-delete="delete(song)"></div>
+</div>
