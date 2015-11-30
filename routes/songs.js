@@ -22,7 +22,10 @@ module.exports = (app) => {
       if (!err) {
         return res.json(songs);
       }
-      next(err);
+      next({
+        message: 'Server error',
+        causedBy: err
+      });
     });
   });
 
@@ -32,7 +35,10 @@ module.exports = (app) => {
       if (!err) {
         return res.json({deleted:id});
       }
-      return next(err);
+      return next({
+        message: 'Server error',
+        causedBy: err
+      });
     });
   });
 
@@ -51,7 +57,10 @@ module.exports = (app) => {
         res.set('Content-Type', 'audio/mpeg');
         return res.send(buffer);
       }
-      next(err);
+      next({
+        message: 'Server error',
+        causedBy: err
+      });
     });
   });
 
@@ -68,7 +77,10 @@ module.exports = (app) => {
       if (!error) {
         return res.json({files: results});
       }
-      next(error);
+      next({
+        message: 'Server error',
+        causedBy: err
+      });
     });
   });
 

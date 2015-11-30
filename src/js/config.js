@@ -17,4 +17,10 @@ angular.module('Player')
       templateUrl: 'upload.html',
       controller: 'UploadController'
     });
-}]);
+}])
+.value('messages', {
+  uploadError: 'A feltöltés sikertelen volt',
+  playError: 'A zene lejátszása nem sikerült',
+  deleteError: 'A zene törlése nem sikerült',
+  loadError: 'A zenék letöltése nem sikerült'
+});

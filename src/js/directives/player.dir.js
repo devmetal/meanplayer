@@ -61,6 +61,11 @@ module.exports = function() {
           scope.stop();
         }
       });
+
+      scope.$on('$destroy', function() {
+        if (audio) audio.remove();
+        player.resetVisualizer();
+      });
     }
   }
 };

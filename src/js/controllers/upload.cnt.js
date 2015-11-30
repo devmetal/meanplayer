@@ -1,22 +1,14 @@
 'use strict';
 
-function UploadController(Upload, $scope) {
+function UploadController(Upload, $scope, messages) {
 
   $scope.process = 0;
   $scope.uploading = false;
-  $scope.finished = false;
+  $scope.success = false;
   $scope.error = false;
-  $scope.errorMsg = "";
+  $scope.errMessage = "";
   $scope.files = [];
   $scope.uploadedFiles = [];
-
-  $scope.$watch('uploading', (newValue, oldValue) => {
-    if (newValue === true && oldValue === false) {
-      $scope.finished = false;
-    } else if (newValue === false && oldValue === true) {
-      $scope.finished = true;
-    }
-  });
 
   $scope.upload = (files) => {
     if (!files) {
@@ -44,17 +36,18 @@ function UploadController(Upload, $scope) {
       data: {files: files},
     }).then(
       resp => {
-        $scope.uploading = false;
         let data = resp.data;
-        if (data.error) {
-          
-        }
-        $scope.uploadedFiles = resp.data.files;
+        $scope.files = [];
+        $scope.uploading = false;
+        $scope.success = true;
+        $scope.uploadedFiles = data.files;
       },
       err => {
+        $scope.files = [];
         $scope.uploading = false;
+        $scope.success = false;
         $scope.error = true;
-        $scope.errorMsg = "System error";
+        $scope.errMessage = messages.uploadError;
       },
       evt => {
         var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
@@ -64,4 +57,4 @@ function UploadController(Upload, $scope) {
   };
 };
 
-module.exports = ['Upload', '$scope', UploadController];
+module.exports = ['Upload', '$scope', 'messages', UploadController];

@@ -1,25 +1,27 @@
 'use strict';
 
-function SongsController(playerSrv, $scope) {
+function SongsController(playerSrv, $scope, messages) {
   $scope.songs = [];
+  $scope.error = false;
+  $scope.errMessage = "";
 
   playerSrv.getSongs().then((songs) => {
-    console.log(songs);
     $scope.songs = songs;
+  }, () => {
+    $scope.error = true;
+    $scope.errorMessage = messages.loadError;
   });
 
   $scope.delete = (song) => {
-    console.log("delete");
-    console.log(song);
     playerSrv.deleteSong(song._id).then((res) => {
-      console.log('response');
-      console.log(res);
-      let deleted = res.deleted;
       let index = $scope.songs.indexOf(song);
       $scope.songs.splice(index, 1);
-    })
+    }, () => {
+      $scope.error = true;
+      $scope.errMessage = messages.deleteError;
+    });
   };
 
 }
 
-module.exports = ['PlayerService', '$scope', SongsController];
+module.exports = ['PlayerService', '$scope', 'messages', SongsController];
