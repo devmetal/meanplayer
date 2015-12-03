@@ -1,18 +1,22 @@
-# Github Search
+# Meanplayer
 
-AngularJs/AngularMaterial example app with Browserify + Babelify
+Example application of MEAN Stack.
 
-## Install Instructions
+## You need
+* Node and npm installed on your machine
+* MongoDb installed on your machine or you can use a cloud based solution like mongolab
 
-First you need to clone this repository
-```
-git clone https://github.com/devmetal/githubsearch.git
-```
+## Install instructions
 
-After that, you have to install dependencies:
-```
-npm install
-npm install -g gulp
-```
+1. Clone this repository
+2. Install gulp on your machine with **npm install gulp -g** command
+3. Navigate with console to project folder
+4. Execute the **npm install** command
+5. Duplicate .env.sample file and rename it to .env
+6. In the file rewrite the configuration with your datas
+  * Port  number
+  * MongoDB path
+7. Start the application with **gulp** command
 
-You can start the app with the gulp command
+## Issues
+* No unit tests avilable
