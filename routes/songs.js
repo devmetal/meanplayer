@@ -4,8 +4,8 @@ let express = require('express');
 let multer  = require('multer');
 let async   = require('async');
 
-let storage      = multer.memoryStorage()
-let router       = express.Router();
+let storage = multer.memoryStorage()
+let router  = express.Router();
 
 module.exports = (app) => {
 
