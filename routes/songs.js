@@ -3,6 +3,7 @@
 let express = require('express');
 let multer  = require('multer');
 let async   = require('async');
+let wrap    = require('co-express');
 
 let storage = multer.memoryStorage()
 let router  = express.Router();
@@ -15,72 +16,31 @@ module.exports = (app) => {
     storage: storage
   }).array('files'));
 
-  router.get('/', (req, res, next) => {
-    Song.find((err, songs) => {
-      if (!err) {
-        return res.json(songs);
-      }
-      next({
-        message: 'Server error',
-        causedBy: err
-      });
-    });
-  });
+  router.get('/', wrap(function *(req, res){
+    let songs = yield Song.find();
+    return res.json(songs);
+  }));
 
-  router.delete('/:id', (req, res, next) => {
+  router.delete('/:id', wrap(function *(req, res){
     let id = req.params.id;
-    Song.findOneAndRemove({_id:id}, (err) => {
-      if (!err) {
-        return res.json({deleted:id});
-      }
-      return next({
-        message: 'Server error',
-        causedBy: err
-      });
-    });
-  });
+    yield Song.findOneAndRemove({_id:id});
+    return res.json({deleted:id});
+  }));
 
-  router.get('/play/:id', (req, res, next) => {
+  router.get('/play/:id', wrap(function *(req, res, next){
     let id = req.params.id;
-    async.waterfall([
-      function getSong(callback) {
-        Song.findOne({_id:id}, callback);
-      },
-      function getStream(song, callback) {
-        let stream = song.getFile();
-        callback(null, stream);
-      }
-    ], function(err, stream) {
-      if (!err) {
-        res.set('Content-Type', "audio/mpeg");
-        return stream.pipe(res);
-      }
-      next({
-        message: 'Server error',
-        causedBy: err
-      });
-    });
-  });
+    let song = yield Song.findOne({_id:id});
+    let stream = song.getFile();
 
-  router.post('/', (req, res, next) => {
-    let asyncTasks = [];
+    res.set('Content-Type', "audio/mpeg");
+    return stream.pipe(res);
+  }));
 
-    req.files.forEach(file => {
-      asyncTasks.push((callback) => {
-        Song.createSong(file.buffer, callback);
-      });
-    });
-
-    async.parallel(asyncTasks, (error, results) => {
-      if (!error) {
-        return res.json({files: results});
-      }
-      next({
-        message: 'Server error',
-        causedBy: err
-      });
-    });
-  });
+  router.post('/', wrap(function *(req, res, next){
+    let asyncTasks = req.files.map(file => Song.createSong(file.buffer));
+    let files = yield asyncTasks;
+    return res.json({files: results});
+  }));
 
   return router;
 }

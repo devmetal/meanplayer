@@ -6,6 +6,7 @@ let mm       = require('musicmetadata');
 let Buffer   = require('buffer').Buffer;
 let stream   = require('stream');
 let utils    = require('../utils');
+let co       = require('co');
 
 let BufferStream = utils.BufferStream;
 let ts           = utils.throughStream;
@@ -40,18 +41,6 @@ let saveFileToGfs = (gfs, is) => {
   });
 };
 
-let saveSongToMongo = (song) => {
-  return new Promise((resolve, reject) => {
-    song.save((err) => {
-      if (!err) {
-        resolve(song);
-      } else {
-        reject(err);
-      }
-    })
-  });
-}
-
 module.exports = function(app) {
   let gfs = app.get('gfs');
 
@@ -66,7 +55,10 @@ module.exports = function(app) {
     });
   };
 
-  SongSchema.statics.createSong = function(is, cb) {
+  /**
+   * TODO: FIXME
+   */
+  SongSchema.statics.createSong = function(is) {
     let p1 = ts();
     let p2 = ts();
     let inputStream = null;
@@ -77,22 +69,17 @@ module.exports = function(app) {
       inputStream = is;
     }
 
-    Promise.all([
-      getSongMetadata(p1),
-      saveFileToGfs(gfs, p2)
-    ]).then((results) => {
+    let song = new this();
+
+    co(function*(){
+      let results = yield [getSongMetadata(p1), saveFileToGfs(gfs, p2)];
       let meta = results[0];
-      let file = results[1];
-      let song = new this();
+      let file = results[0];
 
       song.meta = meta;
       song._fsId = file._id;
 
-      return saveSongToMongo(song);
-    }).then((song) => {
-      cb(null, song);
-    }).catch((err) => {
-      cb(err, null);
+      return yield song.save();
     });
 
     inputStream.pipe(p1).pipe(p2);
