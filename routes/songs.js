@@ -39,7 +39,7 @@ module.exports = (app) => {
   router.post('/', wrap(function *(req, res, next){
     let asyncTasks = req.files.map(file => Song.createSong(file.buffer));
     let files = yield asyncTasks;
-    return res.json({files: results});
+    return res.json({files: files});
   }));
 
   return router;

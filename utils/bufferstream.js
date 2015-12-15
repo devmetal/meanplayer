@@ -5,6 +5,10 @@ let stream = require('stream');
 let util   = require('util');
 
 function BufferStream(source) {
+  if (!(this instanceof BufferStream)) {
+    return new BufferStream(source);
+  }
+
   stream.Readable.call(this);
 
   this._source = source;
