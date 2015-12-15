@@ -55,38 +55,30 @@ module.exports = function(app) {
     });
   };
 
-  SongSchema.statics.createSong = function(is) {
+  SongSchema.statics.createSong = function(is, callback) {
     let p1 = ts(),
         p2 = ts(),
         inputStream = (Buffer.isBuffer(is)) ? BufferStream(is) : is,
-        song = new this(),
-        resolver = null,
-        rejecter = null,
-        promise = new Promise((res,rej) => {
-          resolver = res;
-          rejecter = rej;
-        });
+        song = new this();
 
-    co(function*(){
-      inputStream.pipe(p1).pipe(p2);
-      
-      let results = yield [getSongMetadata(p1), saveFileToGfs(gfs, p2)];
+    Promise.all([
+      getSongMetadata(p1),
+      saveFileToGfs(gfs, p2)
+    ]).then((results) => {
       let meta = results[0];
       let file = results[1];
 
       song.meta = meta;
       song._fsId = file._id;
 
-      yield song.save();
-
-      return song;
+      return song.save();
     }).then(() => {
-      resolver(song);
-    },(err) => {
-      rejecter(err);
+      callback(null, song);
+    }).catch((err) => {
+      callback(err, null);
     });
 
-    return promise;
+    inputStream.pipe(p1).pipe(p2);
   };
 
   return mongoose.model('Song', SongSchema);

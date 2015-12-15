@@ -22,25 +22,44 @@ module.exports = (app) => {
   }));
 
   router.delete('/:id', wrap(function *(req, res){
-    let id = req.params.id;
-    yield Song.findOneAndRemove({_id:id});
-    return res.json({deleted:id});
+    yield Song.findOneAndRemove({_id:req.params.id});
+    return res.json({deleted:req.params.id});
   }));
 
-  router.get('/play/:id', wrap(function *(req, res, next){
-    let id = req.params.id;
-    let song = yield Song.findOne({_id:id});
+  router.get('/play/:id', wrap(function *(req, res){
+    let song = yield Song.findOne({_id:req.params.id});
     let stream = song.getFile();
 
     res.set('Content-Type', "audio/mpeg");
     return stream.pipe(res);
   }));
 
-  router.post('/', wrap(function *(req, res, next){
-    let asyncTasks = req.files.map(file => Song.createSong(file.buffer));
+  router.post('/', wrap(function *(req, res){
+    let createSong = (file) => new Promise((resolve, reject) => {
+      Song.createSong(file.buffer, (err, song) => {
+        if (err) return reject(err);
+        resolve(song);
+      })
+    });
+
+    let asyncTasks = req.files.map(createSong);
     let files = yield asyncTasks;
     return res.json({files: files});
   }));
+
+  router.use(function(err, req, res, next) {
+    console.log(err.message);
+    console.log(err.stack);
+    next(err);
+  });
+
+  router.use(function(err, req, res, next){
+    if (req.xhr) {
+      res.status(500).send({error: 'Server error'});
+    } else {
+      next(err);
+    }
+  });
 
   return router;
 }
